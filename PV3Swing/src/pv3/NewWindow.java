@@ -1,14 +1,17 @@
 package pv3;
 
 import java.awt.EventQueue;
-
-import javax.swing.JFrame;
-import java.awt.GridBagLayout;
-import javax.swing.JLabel;
 import java.awt.GridBagConstraints;
-import javax.swing.JTextField;
+import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
 import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JTextField;
 
 public class NewWindow {
 
@@ -90,6 +93,17 @@ public class NewWindow {
 		gbc_btnCheck.gridx = 3;
 		gbc_btnCheck.gridy = 6;
 		frame.getContentPane().add(btnCheck, gbc_btnCheck);
+		btnCheck.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (textField.getText().isEmpty() || textField_1.getText().isEmpty()) {
+					JOptionPane.showMessageDialog(frame, "Unesite vrednosti za username i password.", "Greska",
+							JOptionPane.ERROR_MESSAGE);
+				} else {
+					JOptionPane.showMessageDialog(frame, "Uneti su svi paramteri.", "Uspesno",
+							JOptionPane.INFORMATION_MESSAGE);
+				}
+			}
+		});
 	}
 
 }
