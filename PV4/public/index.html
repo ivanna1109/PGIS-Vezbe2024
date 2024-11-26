@@ -1,16 +1,31 @@
 <!DOCTYPE html>
 <html>
 <head>
+<style>
+	h3 {
+		color:red;
+	}
+	
+	.form_style_class {
+	 background: yellow;
+	}
+	
+	#h1_selector {
+	 color: #32a852 ;
+	}
+
+</style>
+<link rel="stylesheet" href="css/styles.css"/>
 <meta charset="UTF-8">
 <title>HTML Vezbe</title>
 </head>
 <body>
-	<h1>Prvi Web projekat</h1>
-	<p>Moj prvi HTML</p>
+	<h1 id="h1_selector">Prvi Web projekat</h1>
+	<p class="klasni_selektor">Moj prvi HTML</p>
 	<a href="https://www.gbns.rs/" target="_blank">Gradska biblioteka</a>
 	
-	<h3>Forma</h3>
-	<form>
+	<h3 style="color:green">Forma</h3>
+	<form class="form_style_class">
 		<input type="text"><br>
 		<input type="date" pattern="dd/MM/yyyy"><br>
 		<input type="number"><br>
@@ -20,7 +35,7 @@
 		<button>OK</button>
 	</form>
 	<br><br>
-	<table border="1">
+	<table id="id_selektor_tabele">
 		<tr>
 			<th>Naslov</th>
 			<th>Autor</th>
