@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<title>Vector layers</title>
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+		integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+		crossorigin="" />
+	<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+		integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+		crossorigin=""></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.2/proj4.js"></script>
+</head>
+
+<body>
+
+	<h2>Vector layers</h2>
+	<div id="map" style="width:80%; height:800px;"></div>
+
+	<script>
+		var map = L.map('map').setView({lon: -77.866926, lat: 38.551970}, 6);
+
+		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+			maxZoom: 19,
+			attribution: '&copy; <a href="https://openstreetmap.org/copyright" > OpenStreetMap contributors</a> '
+		}).addTo(map);
+
+		//FastFoods - maxFeatures = 1000 podaci iz fastFoods tabele
+		var url = 'http://localhost:8080/geoserver/pgisLayers/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=pgisLayers%3Afastfoods&maxFeatures=5000&outputFormat=application%2Fjson'
+		load(url)
+
+		async function load(url) {
+			var data = await (await fetch(url)).json()
+			console.log(data)
+			layer = L.geoJSON(data, {
+				pointToLayer: function (feature, latlng) {
+					var transformed = transformData(latlng)
+					return L.circleMarker(transformed, {
+						radius: 8,
+						fillColor: "#a10202",
+						color: "##a10202",
+						weight: 1,
+						opacity: 1,
+						fillOpacity: 0.8
+					});
+				}
+			}).addTo(map);
+		}
+
+		var marker;
+		var layer;
+
+		function onMapClick(event) {
+			console.log(event.latlng)
+			if (marker != undefined) {
+				map.removeLayer(marker)
+			}
+			marker = L.marker(event.latlng).addTo(map)
+			if (layer != undefined) {
+				map.removeLayer(layer)
+			}
+			var fastFoodsByLocationUrl = "http://localhost:8080/geoserver/pgisLayers/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=pgisLayers%3AfastFoodsByLocation&maxFeatures=50&outputFormat=application%2Fjson"
+			var params = "&viewparams=lat:"+event.latlng.lat + ";lon:"+event.latlng.lng
+			var finalUrl = fastFoodsByLocationUrl + params
+
+			loadFastFoodsByLoc(finalUrl)
+
+			async function loadFastFoodsByLoc(finalUrl) {
+				var data = await (await fetch(finalUrl)).json()
+				console.log(data)
+				layer = L.geoJSON(data, {
+					pointToLayer: function (feature, latlng) {
+						console.log(latlng)
+						var transformed = transformData(latlng)
+						return L.circleMarker(transformed, {
+							radius: 9,
+							fillColor: "#ad03fc",
+							color: "#0320fc",
+							weight: 1,
+							opacity: 1,
+							fillOpacity: 0.8
+						});
+					}
+				}).addTo(map);
+			}
+		}
+		map.on('click', onMapClick)
+
+		function transformData(latlng) {
+			proj4.defs("EPSG:2163", "+proj=laea +lat_0=45 +lon_0=-100 +x_0=0 +y_0=0+ a=6370997 + b=6370997 + units=m + no_defs");
+			proj4.defs("EPSG:4326", "+proj=longlat +datum=WGS84 +no_defs");
+			console.log(latlng['lat'], latlng['lng'])
+			let outputCoords = proj4("EPSG:2163", "EPSG:4326", [latlng['lng'],
+			latlng['lat']])
+			let latitude = outputCoords[1];
+			let longitude = outputCoords[0];
+			return [latitude, longitude]
+		}
+	</script>
+
+</body>
+
+</html>

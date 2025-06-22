@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<title>Raster layers</title>
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+		integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+		crossorigin="" />
+	<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+		integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+		crossorigin=""></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.2/proj4.js"></script>
+</head>
+
+<body>
+	<h2>Raster layers</h2>
+	<div id="raster_map" style="width:80%; height:500px;"></div>
+
+	<script>
+		var map = L.map('raster_map').setView([45.438759, 12.3155], 11);
+		//probati kod kuce da li radi/*
+		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+			maxZoom: 19,
+			attribution: '&copy; <a href="https://openstreetmap.org/copyright" > OpenStreetMap contributors</a> '
+		}).addTo(map);
+
+		/* Venice multispectral Image
+		var veniceLayer = L.tileLayer.wms("http://localhost:8080/geoserver/pgisLayers/wms?", {
+			layers: 'Landsat_ETM_2001-08-26_multispectral',
+			format: 'image/png',
+			transparent: true
+		}).addTo(map);
+		*/
+		/* Buildings Venice - WMS layer
+		var buildingsLayer = L.tileLayer.wms("http://localhost:8080/geoserver/pgisLayers/wms?", {
+			layers: 'buildings_UTM_Venice',
+			format: 'image/png',
+			transparent: true
+		}).addTo(map);
+		*/
+		// Buildings Venice - WFS layer
+		var buildingsUrl = "http://localhost:8080/geoserver/pgisLayers/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=pgisLayers%3Abuildings_UTM_Venice&maxFeatures=1000&outputFormat=application%2Fjson"
+		fetch(buildingsUrl)
+			.then(function (response) {
+				return response.json()
+			})
+			.then(function (data) {
+				data.features.forEach(function (f) {
+					f.geometry.coordinates[0].forEach(function (poly){
+						let newCoordinates = []
+						poly.forEach(function (point){
+							let transformedCord = transformData(point)
+							newCoordinates.push(transformedCord)
+						})
+						console.log(newCoordinates)
+						var polygon = L.polygon(newCoordinates,
+						{
+							color: "#fcba03",
+							weight: 1,
+							fillColor: "#fcba03",
+						}).addTo(map)
+					})
+				});
+			});
+		function transformData(p) {
+			proj4.defs("EPSG:32632", "+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs");
+			proj4.defs("EPSG:4326", "+proj=longlat +datum=WGS84 +no_defs");
+			//prvo se prosledjuje longitute, pa latitude
+			let outputCoords = proj4("EPSG:32632", "EPSG:4326", [p[0], p[1]]) //[lng, lat]
+			let latitude = outputCoords[1];
+			let longitude = outputCoords[0];
+			return [latitude, longitude]
+		}
+	</script>
+</body>
+
+</html>
